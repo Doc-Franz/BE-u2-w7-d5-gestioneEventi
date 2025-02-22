@@ -49,4 +49,11 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "event_id"))
     private List<Event> eventList = new ArrayList<>();
 
+    public User(String username, String password, String firstName, String lastName, String email) {
+        this.username = username;
+        this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+    }
 }

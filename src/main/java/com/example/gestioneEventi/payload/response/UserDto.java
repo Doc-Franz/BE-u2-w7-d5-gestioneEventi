@@ -1,4 +1,4 @@
-package com.example.gestioneEventi.payload.request;
+package com.example.gestioneEventi.payload.response;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

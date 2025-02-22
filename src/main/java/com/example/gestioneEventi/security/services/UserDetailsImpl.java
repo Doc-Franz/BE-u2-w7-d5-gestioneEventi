@@ -27,6 +27,8 @@ public class UserDetailsImpl implements UserDetails {
     @JsonIgnore
     private String password;
 
+    private Collection<? extends GrantedAuthority> roles;
+
     public static UserDetailsImpl buildDetails(User user){
 
         // ad ogni utente è associato Set<Ruolo> --> Set<Ruolo> va convertito in List<GrantedAuthority>
@@ -36,12 +38,12 @@ public class UserDetailsImpl implements UserDetails {
                 .map(role -> new SimpleGrantedAuthority(role.getRoleType()
                         .name())).collect(Collectors.toList());
 
-        return new UserDetailsImpl(user.getId(), user.getUsername(), user.getEmail(), user.getPassword());
+        return new UserDetailsImpl(user.getId(), user.getUsername(), user.getEmail(), user.getPassword(), userRoles);
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return roles;
     }
 
     @Override
