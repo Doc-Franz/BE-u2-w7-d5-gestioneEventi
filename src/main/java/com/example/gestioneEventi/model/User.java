@@ -56,4 +56,10 @@ public class User {
         this.lastName = lastName;
         this.email = email;
     }
+
+    // metodo che aggiunge un ruolo all'utente
+    public void addRole(Role role){
+        roleSet.add(role);
+    }
+
 }
