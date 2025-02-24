@@ -15,8 +15,7 @@ public class EventService {
     @Autowired
     EventRepository eventRepository;
 
-    public String insertEvent(EventDto eventDto){
-        Event event = dto_entity(eventDto);
+    public String insertEvent(Event event){
         eventRepository.save(event);
 
         return "L'evento con id " + event.getId() + " è stato salvato correttamente";

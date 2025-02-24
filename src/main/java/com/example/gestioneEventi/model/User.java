@@ -62,4 +62,9 @@ public class User {
         roleSet.add(role);
     }
 
+    // metodo che aggiunge una partecipazione ad un evento
+    public void addPartecipation(Event event){
+        eventList.add(event);
+    }
+
 }

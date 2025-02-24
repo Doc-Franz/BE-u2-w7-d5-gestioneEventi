@@ -7,6 +7,7 @@ package com.example.gestioneEventi.security.jwt;
    3. metodo che tratta la validazione del token JWT */
 
 import com.example.gestioneEventi.security.services.UserDetailsImpl;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
