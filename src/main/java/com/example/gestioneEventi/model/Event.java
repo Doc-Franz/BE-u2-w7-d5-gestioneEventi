@@ -24,4 +24,5 @@ public class Event {
 
     @Column(nullable = false)
     private LocalDate eventDate;
+
 }

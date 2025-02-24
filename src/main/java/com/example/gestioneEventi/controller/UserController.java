@@ -1,12 +1,15 @@
 package com.example.gestioneEventi.controller;
 
 import com.example.gestioneEventi.exception.EmailDuplicateException;
+import com.example.gestioneEventi.exception.RoleNotFound;
+import com.example.gestioneEventi.exception.UserNotFound;
 import com.example.gestioneEventi.exception.UsernameDuplicateException;
 import com.example.gestioneEventi.model.Role;
 import com.example.gestioneEventi.payload.request.LoginRequest;
 import com.example.gestioneEventi.payload.request.RegistrationRequest;
 import com.example.gestioneEventi.payload.response.JwtResponse;
 import com.example.gestioneEventi.payload.response.UserDto;
+import com.example.gestioneEventi.repository.UserRepository;
 import com.example.gestioneEventi.security.jwt.JwtUtils;
 import com.example.gestioneEventi.security.services.UserDetailsImpl;
 import com.example.gestioneEventi.service.UserService;
@@ -41,7 +44,7 @@ public class UserController {
     JwtUtils jwtUtils;
 
     @PostMapping("/new")
-    public ResponseEntity<String> insertUser(@Validated @RequestBody RegistrationRequest newUser, BindingResult validation, @RequestParam Set<String> role){
+    public ResponseEntity<String> insertUser(@Validated @RequestBody RegistrationRequest newUser, BindingResult validation){
 
         try {
             if (validation.hasErrors()) {
@@ -53,12 +56,23 @@ public class UserController {
                 }
             }
 
-            String insertUserMessage = userService.insertUser(newUser, role);
+            String insertUserMessage = userService.insertUser(newUser);
             return new ResponseEntity<>(insertUserMessage, HttpStatus.OK);
         } catch (EmailDuplicateException | UsernameDuplicateException ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
+    }
+
+    @PatchMapping("/{username}")
+    public ResponseEntity<String> updateUserRole(@PathVariable String username, @RequestParam String roleName){
+
+        try {
+            userService.updateRole(username, roleName);
+            return new ResponseEntity<>("Il ruolo dell'utente è stato aggiornato correttamente", HttpStatus.OK);
+        } catch (UserNotFound | RoleNotFound ex){
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PostMapping("/login")
