@@ -69,7 +69,6 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/user/new").permitAll()
                                 .requestMatchers("/user/login").permitAll()
-                                .requestMatchers("/user/**").hasRole("USER_ROLE")
                                 .requestMatchers("/event/**").permitAll()
                                 .anyRequest().authenticated());
 

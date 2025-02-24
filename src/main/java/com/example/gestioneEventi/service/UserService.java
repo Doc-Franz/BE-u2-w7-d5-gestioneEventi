@@ -13,6 +13,7 @@ import com.example.gestioneEventi.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Scanner;
@@ -45,10 +46,13 @@ public class UserService {
     @Autowired
     RoleService roleService;
 
-    public void createAdmin(){
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public void createAdmin() {
 
         // verifico se l'admin è già presente nel database
-        if (userRepository.existsByUsername(adminUsername)){
+        if (userRepository.existsByUsername(adminUsername)) {
             return;
         }
 
@@ -58,7 +62,7 @@ public class UserService {
     }
 
     // aggiornamento del ruolo di un utente effettuato da admin
-    public void updateRole(String username, String roleName){
+    public void updateRole(String username, String roleName) {
 
         User user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFound("L'utente non è stato trovato"));
 
@@ -69,12 +73,14 @@ public class UserService {
         user.addRole(roleService.getByRoleType(RoleType.valueOf(roleName.toUpperCase())).orElseThrow(() -> new RoleNotFound("Il ruolo non è stato identificato")));
     }
 
-    public String insertUser(RegistrationRequest userRequest){
+    public String insertUser(RegistrationRequest userRequest) {
         checkDuplicatedKey(userRequest.getUsername(), userRequest.getEmail());
+
+        String encodedPassword = passwordEncoder.encode(userRequest.getPassword());
 
         User user = new User(
                 userRequest.getUsername(),
-                userRequest.getPassword(),
+                encodedPassword,
                 userRequest.getFirstName(),
                 userRequest.getLastName(),
                 userRequest.getEmail());
@@ -88,19 +94,19 @@ public class UserService {
     // ❗❗ I campi di registrazione dovranno essere convertity nell'entity di utente
 
     // verificare eventuali campi duplicati --> la gestione try/catch affidata al controller
-    public void checkDuplicatedKey(String username, String email){
+    public void checkDuplicatedKey(String username, String email) {
 
-        if(userRepository.existsByUsername(username)){
+        if (userRepository.existsByUsername(username)) {
             throw new UsernameDuplicateException("L'username inserito è già stato utilizzato");
         }
 
-        if(userRepository.existsByEmail(email)){
+        if (userRepository.existsByEmail(email)) {
             throw new EmailDuplicateException("L'email inserita è già stata utilizzata");
         }
     }
 
     // travaso DTO -> ENTITY
-    public User dto_entity(UserDto userDto){
+    public User dto_entity(UserDto userDto) {
         User user = new User();
 
         user.setUsername(userDto.getUsername());
@@ -113,7 +119,7 @@ public class UserService {
     }
 
     // travaso ENTITY -> DTO
-    public UserDto entity_dto(User user){
+    public UserDto entity_dto(User user) {
         UserDto userDto = new UserDto();
 
         userDto.setUsername(user.getUsername());

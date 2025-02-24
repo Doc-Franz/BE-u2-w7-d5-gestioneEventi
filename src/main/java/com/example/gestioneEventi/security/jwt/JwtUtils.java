@@ -38,10 +38,13 @@ public class JwtUtils {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getDetails();
 
         // creazione del JWT
+
+        long expirationTime = Long.parseLong(jwtExpiration);
+
         return Jwts.builder()
                 .setSubject(userPrincipal.getUsername())                            // username
                 .setIssuedAt(new Date())                                            // data creazione token
-                .setExpiration(new Date(new Date().getTime()+jwtExpiration))     // data di scandenza
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))     // data di scandenza
                 .signWith(getKey(), SignatureAlgorithm.HS256)                       // firma del token con la chiave segreta
                 .compact();                                                         // conversione in stringa
     }

@@ -11,11 +11,11 @@ import java.util.Set;
 
 public class LoginRequest {
 
-    @NotBlank
+    @NotBlank(message = "Il campo username risulta vuoto")
     @Size(min = 3, max = 15)
     private String username;
 
-    @NotBlank
+    @NotBlank(message = "Il campo password risulta vuoto")
     @Size(min = 3, max = 20)
     private String password;
 

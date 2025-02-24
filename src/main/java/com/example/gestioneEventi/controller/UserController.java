@@ -5,6 +5,7 @@ import com.example.gestioneEventi.exception.RoleNotFound;
 import com.example.gestioneEventi.exception.UserNotFound;
 import com.example.gestioneEventi.exception.UsernameDuplicateException;
 import com.example.gestioneEventi.model.Role;
+import com.example.gestioneEventi.model.User;
 import com.example.gestioneEventi.payload.request.LoginRequest;
 import com.example.gestioneEventi.payload.request.RegistrationRequest;
 import com.example.gestioneEventi.payload.response.JwtResponse;
@@ -20,6 +21,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.validation.annotation.Validated;
@@ -42,6 +44,12 @@ public class UserController {
 
     @Autowired
     JwtUtils jwtUtils;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    @Autowired
+    UserRepository userRepository;
 
     @PostMapping("/new")
     public ResponseEntity<String> insertUser(@Validated @RequestBody RegistrationRequest newUser, BindingResult validation){
@@ -89,31 +97,38 @@ public class UserController {
             return new ResponseEntity<>(errorMessage.toString(), HttpStatus.BAD_REQUEST);
         }
 
-        // generazione oggetto per autenticazione
-        UsernamePasswordAuthenticationToken tokenNoAuth = new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
+        User user = userRepository.findByUsername(loginRequest.getUsername()).orElseThrow();
 
-        // Invocare e recuperare l'authentication -> autenticazione va a buon fine
-        // Utilizziamo il gestore delle autenticazioni che si basa su Username e Password
-        // Recuperiamo l'autenticazione attraverso il metodo authenticate
-        Authentication authentication = authenticationManager.authenticate(tokenNoAuth);
+        if(passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
+            // generazione oggetto per autenticazione
+            UsernamePasswordAuthenticationToken tokenNoAuth = new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), user.getPassword());
 
-        // Impostare l'autenticazione nel contesto di sicurezza di Spring
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            // Invocare e recuperare l'authentication -> autenticazione va a buon fine
+            // Utilizziamo il gestore delle autenticazioni che si basa su Username e Password
+            // Recuperiamo l'autenticazione attraverso il metodo authenticate
+            Authentication authentication = authenticationManager.authenticate(tokenNoAuth);
 
-        // Generazione del token finale
-        String token = jwtUtils.createJwtToken(authentication);
+            // Impostare l'autenticazione nel contesto di sicurezza di Spring
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Recuperiamo le info che vogliamo inserire nella risposta al client
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        List<String> webRoles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .toList();
+            // Generazione del token finale
+            String token = jwtUtils.createJwtToken(authentication);
 
-        // Creare un oggetto JWT response
-        JwtResponse jwtResponse = new JwtResponse(userDetails.getUsername(), userDetails.getId(), userDetails.getEmail(), webRoles, token);
+            // Recuperiamo le info che vogliamo inserire nella risposta al client
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            List<String> webRoles = userDetails.getAuthorities().stream()
+                    .map(item -> item.getAuthority())
+                    .toList();
 
-        // Gestione della risposta al client
-        return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
+            // Creare un oggetto JWT response
+            JwtResponse jwtResponse = new JwtResponse(userDetails.getUsername(), userDetails.getId(), userDetails.getEmail(), webRoles, token);
+
+            // Gestione della risposta al client
+            return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
+        }
+
+
+        return new ResponseEntity<>("Utente non trovato", HttpStatus.BAD_REQUEST);
 
     }
 
